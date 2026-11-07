@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ios_black">#000000</color>
+    <color name="ios_card_dark">#1C1C1E</color>
+    <color name="ios_card_light">#FFFFFF</color>
+    <color name="ios_dial_dark">#121214</color>
+    <color name="ios_dial_light">#F5F5F7</color>
+    <color name="ios_orange">#FF9500</color>
+    <color name="ios_red">#FF3B30</color>
+    <color name="ios_blue">#007AFF</color>
+    <color name="ios_white">#FFFFFF</color>
+    <color name="ios_gray">#8E8E93</color>
+    <color name="ios_secondary_gray">#3A3A3C</color>
+    <color name="ios_subtext">#AEAEB2</color>
+    <color name="ios_pill_bg">#2C2C2E</color>
+    <color name="ios_accent_yellow">#FFD60A</color>
+</resources>

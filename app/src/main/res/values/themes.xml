@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CupertinoClock" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/ios_orange</item>
+        <item name="android:statusBarColor">@color/ios_black</item>
+        <item name="android:navigationBarColor">@color/ios_black</item>
+        <item name="android:windowBackground">@color/ios_black</item>
+    </style>
+</resources>
