@@ -41,7 +41,7 @@ object ClockRenderer {
             color = dialBgColor
             style = Paint.Style.FILL
         }
-        canvas.drawCircle(center, radius, dialPaint)
+        canvas.drawCircle(center, center, radius, dialPaint)
 
         // 2. Subtle Outer Border
         val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -49,7 +49,7 @@ object ClockRenderer {
             style = Paint.Style.STROKE
             strokeWidth = size * 0.012f
         }
-        canvas.drawCircle(center, radius, borderPaint)
+        canvas.drawCircle(center, center, radius, borderPaint)
 
         // 3. Draw Hour & Minute Ticks
         val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -151,14 +151,14 @@ object ClockRenderer {
                 color = orangeColor
                 style = Paint.Style.FILL
             }
-            canvas.drawCircle(center, size * 0.024f, hubPaint)
+            canvas.drawCircle(center, center, size * 0.024f, hubPaint)
 
             // Inner Tiny Black Dot in Hub
             val innerDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.BLACK
                 style = Paint.Style.FILL
             }
-            canvas.drawCircle(center, size * 0.008f, innerDotPaint)
+            canvas.drawCircle(center, center, size * 0.008f, innerDotPaint)
         }
 
         return bitmap
