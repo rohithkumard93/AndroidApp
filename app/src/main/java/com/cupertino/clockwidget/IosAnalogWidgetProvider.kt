@@ -6,11 +6,12 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.widget.RemoteViews
 import java.util.TimeZone
 
 /**
- * AppWidgetProvider for the Squircle Perimeter-Tick Clock Widget (as in the reference image).
+ * AppWidgetProvider for the Squircle Clock Widget with Dynamic Seconds Counter.
  */
 class IosAnalogWidgetProvider : AppWidgetProvider() {
 
@@ -19,9 +20,28 @@ class IosAnalogWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        startSecondsService(context)
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
+    }
+
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        startSecondsService(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        super.onDisabled(context)
+        val serviceIntent = Intent(context, WidgetSecondsService::class.java)
+        context.stopService(serviceIntent)
+    }
+
+    private fun startSecondsService(context: Context) {
+        try {
+            val serviceIntent = Intent(context, WidgetSecondsService::class.java)
+            context.startService(serviceIntent)
+        } catch (_: Exception) {}
     }
 
     companion object {
@@ -37,7 +57,7 @@ class IosAnalogWidgetProvider : AppWidgetProvider() {
             val timeZone = if (tzId != null) TimeZone.getTimeZone(tzId) else TimeZone.getDefault()
             val isDark = prefs.getBoolean("is_dark_theme", false)
 
-            // Render exact Squircle Perimeter-Tick Clock (Light White Card with Black Ticks & Bold Time)
+            // Render Squircle Clock with live seconds progress
             val clockBitmap = ClockRenderer.renderSquircleClock(
                 size = 512,
                 timeZone = timeZone,

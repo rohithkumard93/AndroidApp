@@ -17,21 +17,23 @@ import kotlin.math.sin
 
 /**
  * High-fidelity Canvas renderer for iOS-style Clock widgets.
- * Renders the iconic Squircle Perimeter-Tick Digital Clock Widget:
- * - Continuous superellipse squircle card with soft elevation
- * - 60 perimeter-hugging tick marks evenly distributed along the rounded squircle boundary
- * - Prominent bold condensed typography ("sans-serif-condensed")
+ * Renders the iconic Squircle Clock with a Dynamic Seconds Counter:
+ * - 60 perimeter ticks that dynamically fill as a seconds counter (0 to 59s)
+ * - Trailing elapsed seconds are filled solid
+ * - The active current second is highlighted in signature Cupertino Orange (#FF9500)
+ * - Remaining seconds are displayed as subtle inactive dots/dashes
  */
 object ClockRenderer {
 
     /**
-     * Renders the Squircle Perimeter Tick Digital Clock (Exact User Image Design)
+     * Renders the Squircle Clock with Dynamic Seconds Counter
      */
     fun renderSquircleClock(
         size: Int = 512,
         timeZone: TimeZone = TimeZone.getDefault(),
         is24Hour: Boolean = false,
-        isDarkTheme: Boolean = false
+        isDarkTheme: Boolean = false,
+        forcedSecond: Int? = null
     ): Bitmap {
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -39,10 +41,16 @@ object ClockRenderer {
         val cx = size / 2f
         val cy = size / 2f
 
+        // Get Current Time & Seconds
+        val calendar = Calendar.getInstance(timeZone)
+        val currentSecond = forcedSecond ?: calendar.get(Calendar.SECOND)
+
         // Theme Palettes
         val cardBgColor = if (isDarkTheme) Color.parseColor("#1C1C1E") else Color.parseColor("#FFFFFF")
         val textColor = if (isDarkTheme) Color.WHITE else Color.parseColor("#0A0A0A")
-        val tickBaseColor = if (isDarkTheme) Color.WHITE else Color.BLACK
+        val activeTickColor = if (isDarkTheme) Color.WHITE else Color.parseColor("#0A0A0A")
+        val inactiveTickColor = if (isDarkTheme) Color.parseColor("#2C2C2E") else Color.parseColor("#E5E5EA")
+        val currentSecondColor = Color.parseColor("#FF9500") // Cupertino orange runner
         val shadowColor = if (isDarkTheme) Color.parseColor("#30000000") else Color.parseColor("#1F000000")
 
         // 1. Soft Ambient Drop Shadow
@@ -77,21 +85,20 @@ object ClockRenderer {
         }
         canvas.drawRoundRect(cardRect, cardRadius, cardRadius, rimPaint)
 
-        // 3. Draw 60 Perimeter Ticks along the Squircle
+        // 3. Draw 60 Perimeter Ticks as Dynamic Seconds Counter
         val tickMargin = cardMargin + size * 0.052f
         val tickW = size - 2 * tickMargin
         val tickH = size - 2 * tickMargin
         val tickRadius = cardRadius * 0.76f
 
-        val tickLength = size * 0.048f
-        val tickStroke = size * 0.013f
+        val baseTickLength = size * 0.045f
+        val baseTickStroke = size * 0.013f
 
         val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             strokeCap = Paint.Cap.ROUND
-            strokeWidth = tickStroke
         }
 
-        // Generate tick positions along rounded rectangle perimeter
+        // Generate 60 points along rounded rectangle perimeter (0 = 12 o'clock, 59 = 11:59 position)
         val ticks = getRoundedRectPerimeterPoints(
             cx = cx,
             cy = cy,
@@ -103,23 +110,34 @@ object ClockRenderer {
 
         for (i in ticks.indices) {
             val tick = ticks[i]
+            val isCurrent = (i == currentSecond)
+            val isElapsed = (i <= currentSecond)
 
-            // Subtle gradient fade around the perimeter as seen in the reference
-            val alpha = if (i in 45..58) {
-                // Top-left softening
-                (120 + ((i - 45) / 13f) * 135).toInt()
-            } else {
-                255
+            // Dynamic Second State:
+            // - Current second: vibrant Cupertino orange runner with slight accent length
+            // - Elapsed seconds: solid active black/white dots
+            // - Upcoming seconds: subtle muted inactive dots
+            val tickColor = when {
+                isCurrent -> currentSecondColor
+                isElapsed -> activeTickColor
+                else -> inactiveTickColor
             }
 
-            tickPaint.color = Color.argb(
-                alpha,
-                Color.red(tickBaseColor),
-                Color.green(tickBaseColor),
-                Color.blue(tickBaseColor)
-            )
+            val tickLength = when {
+                isCurrent -> baseTickLength * 1.35f
+                isElapsed -> baseTickLength
+                else -> baseTickLength * 0.85f
+            }
 
-            // Start on perimeter, point inward along normal vector
+            val tickStroke = when {
+                isCurrent -> baseTickStroke * 1.35f
+                isElapsed -> baseTickStroke
+                else -> baseTickStroke * 0.85f
+            }
+
+            tickPaint.color = tickColor
+            tickPaint.strokeWidth = tickStroke
+
             val startX = tick.x
             val startY = tick.y
             val endX = tick.x + tick.nx * tickLength
@@ -133,7 +151,7 @@ object ClockRenderer {
         val timeFormat = SimpleDateFormat(pattern, Locale.US).apply {
             this.timeZone = timeZone
         }
-        val timeText = timeFormat.format(Date())
+        val timeText = timeFormat.format(calendar.time)
 
         val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = textColor
@@ -314,7 +332,6 @@ object ClockRenderer {
         val vStraight = height - 2 * radius
         val arcLen = (0.5 * Math.PI * radius).toFloat()
 
-        // Total perimeter
         val totalPerimeter = 2 * hStraight + 2 * vStraight + 4 * arcLen
         val step = totalPerimeter / count
 

@@ -43,6 +43,11 @@
                 android:resource="@xml/widget_digital_clock_info" />
         </receiver>
 
+        <!-- Dynamic Seconds Counter Background Service -->
+        <service
+            android:name=".WidgetSecondsService"
+            android:exported="false" />
+
     </application>
 
 </manifest>
