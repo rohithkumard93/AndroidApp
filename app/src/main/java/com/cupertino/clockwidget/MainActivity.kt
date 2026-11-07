@@ -26,16 +26,17 @@ class MainActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private var selectedTimeZone: TimeZone = TimeZone.getDefault()
     private var selectedCityName: String = "Cupertino"
+    private var isDarkMode: Boolean = false
 
     private val cities = listOf(
+        "Local Device Time" to TimeZone.getDefault().id,
         "Cupertino" to "America/Los_Angeles",
         "New York" to "America/New_York",
         "London" to "Europe/London",
         "Paris" to "Europe/Paris",
         "Tokyo" to "Asia/Tokyo",
         "Dubai" to "Asia/Dubai",
-        "Sydney" to "Australia/Sydney",
-        "Local Device Time" to TimeZone.getDefault().id
+        "Sydney" to "Australia/Sydney"
     )
 
     private val tickerRunnable = object : Runnable {
@@ -49,6 +50,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val prefs = getSharedPreferences("cupertino_prefs", Context.MODE_PRIVATE)
+        isDarkMode = prefs.getBoolean("is_dark_theme", false)
 
         setupCitySpinner()
         setupPinWidgetButtons()
@@ -78,7 +82,6 @@ class MainActivity : AppCompatActivity() {
                 selectedCityName = cityName
                 selectedTimeZone = TimeZone.getTimeZone(tzId)
 
-                // Save to preferences
                 getSharedPreferences("cupertino_prefs", Context.MODE_PRIVATE)
                     .edit()
                     .putString("selected_city", cityName)
@@ -86,7 +89,6 @@ class MainActivity : AppCompatActivity() {
                     .apply()
 
                 updatePreviews()
-                // Update active home screen widgets
                 IosAnalogWidgetProvider.updateAllWidgets(this@MainActivity)
                 IosDigitalWidgetProvider.updateAllWidgets(this@MainActivity)
             }
@@ -96,14 +98,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePreviews() {
-        // 1. Live Analog Preview with smooth second hand
-        val analogBitmap = ClockRenderer.renderDial(
-            size = 320,
+        // 1. Exact Squircle Perimeter-Tick Clock (As in uploaded image)
+        val squircleBitmap = ClockRenderer.renderSquircleClock(
+            size = 480,
             timeZone = selectedTimeZone,
-            isDarkTheme = true,
-            showSecondHand = true
+            is24Hour = false,
+            isDarkTheme = isDarkMode
         )
-        binding.previewAnalogClock.setImageBitmap(analogBitmap)
+        binding.previewAnalogClock.setImageBitmap(squircleBitmap)
 
         // 2. Mini Accent Dial
         val miniBitmap = ClockRenderer.renderDial(
@@ -122,6 +124,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupPinWidgetButtons() {
+        binding.btnAddAnalog.text = "Pin Squircle Clock to Home"
         binding.btnAddAnalog.setOnClickListener {
             pinWidget(IosAnalogWidgetProvider::class.java)
         }

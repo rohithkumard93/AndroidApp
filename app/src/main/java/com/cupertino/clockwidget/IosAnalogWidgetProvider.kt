@@ -7,11 +7,10 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import java.util.Calendar
 import java.util.TimeZone
 
 /**
- * AppWidgetProvider for the 2x2 iOS Analog World Clock Widget.
+ * AppWidgetProvider for the Squircle Perimeter-Tick Clock Widget (as in the reference image).
  */
 class IosAnalogWidgetProvider : AppWidgetProvider() {
 
@@ -33,23 +32,21 @@ class IosAnalogWidgetProvider : AppWidgetProvider() {
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_analog_clock)
 
-            // Render Cupertino Analog Dial
-            val timeZone = TimeZone.getDefault()
-            val clockBitmap = ClockRenderer.renderDial(
-                size = 380,
+            val prefs = context.getSharedPreferences("cupertino_prefs", Context.MODE_PRIVATE)
+            val tzId = prefs.getString("selected_tz", TimeZone.getDefault().id)
+            val timeZone = if (tzId != null) TimeZone.getTimeZone(tzId) else TimeZone.getDefault()
+            val isDark = prefs.getBoolean("is_dark_theme", false)
+
+            // Render exact Squircle Perimeter-Tick Clock (Light White Card with Black Ticks & Bold Time)
+            val clockBitmap = ClockRenderer.renderSquircleClock(
+                size = 512,
                 timeZone = timeZone,
-                isDarkTheme = true,
-                showSecondHand = false // Widgets conserve battery by refreshing on minute intervals
+                is24Hour = false,
+                isDarkTheme = isDark
             )
             views.setImageViewBitmap(R.id.iv_clock_face, clockBitmap)
 
-            // Set City & Offset Info
-            val city = context.getSharedPreferences("cupertino_prefs", Context.MODE_PRIVATE)
-                .getString("selected_city", "CUPERTINO") ?: "CUPERTINO"
-            views.setTextViewText(R.id.tv_city_name, city.uppercase())
-            views.setTextViewText(R.id.tv_time_offset, calculateOffsetString(timeZone))
-
-            // Open App on Click
+            // Open Companion App on Tap
             val clickIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
@@ -62,12 +59,6 @@ class IosAnalogWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.analog_widget_root, pendingIntent)
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
-        }
-
-        private fun calculateOffsetString(tz: TimeZone): String {
-            val offsetHours = tz.rawOffset / (1000 * 60 * 60)
-            val sign = if (offsetHours >= 0) "+" else ""
-            return "Today, ${sign}${offsetHours}HRS"
         }
 
         fun updateAllWidgets(context: Context) {

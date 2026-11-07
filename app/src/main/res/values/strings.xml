@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Cupertino Clock</string>
-    <string name="widget_analog_name">iOS Analog Clock</string>
-    <string name="widget_analog_desc">Minimalist Cupertino-style analog clock widget</string>
+    <string name="widget_analog_name">iOS Squircle Clock</string>
+    <string name="widget_analog_desc">Minimalist Squircle perimeter-tick digital clock</string>
     <string name="widget_digital_name">iOS Digital Clock</string>
     <string name="widget_digital_desc">iOS Lock Screen aesthetic digital clock with date pill</string>
     <string name="default_city">CUPERTINO</string>
